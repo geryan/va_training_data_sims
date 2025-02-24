@@ -7,15 +7,21 @@ library(purrr)
 library(ggplot2)
 library(readr)
 
+
+# how many sites
 nsites <- 100
 
 site <- 1:nsites
 
+
+# are they control or treatments?
 type <- c(
   rep("control", nsites/2),
   rep("treatment", nsites/2)
 )
 
+
+# indoor or outdoor?
 location <- rep(
   c(
     rep("indoor", nsites/4),
@@ -24,17 +30,17 @@ location <- rep(
   2
 )
 
-
-
+# treadment effect on population
 effect_treatment <- 0.5
 
+# effect of being indoors
 effect_indoor <- 0.7
 
+# mean and sd biomass from mosquito sampling
 outdoor_control_mean <- 5.3
-
 outdoor_control_sd <- 2.1
 
-
+# random effect on biomass for each site
 site_re <- tibble(
   site,
   site_re = rnorm(
@@ -53,6 +59,9 @@ hist(
   ),
   breaks = 50
 )
+
+# make a multiplier on mean to draw from incorporating site characteristics
+# and effect sizes
 
 determine_multiplier <- function(
   type,
@@ -76,7 +85,7 @@ determine_multiplier <- function(
   multiplier
 }
 
-
+# put together data on site charascteristics
 df1 <- tibble(
   site_re,
   type,
@@ -86,6 +95,7 @@ df1 <- tibble(
     time = c("before", "after")
   )
 
+# calculate multiplier for each site and time
 multiplier <- mapply(
   FUN = determine_multiplier,
   df1$type,
@@ -99,6 +109,7 @@ multiplier <- mapply(
   SIMPLIFY = TRUE
 )
 
+#  sample data
 baci_data <- tibble(
   df1,
   multiplier
@@ -128,8 +139,7 @@ baci_data <- tibble(
     )
   )
 
-
-
+# plot data
 ggplot(baci_data) +
   geom_boxplot(
     aes(
@@ -141,6 +151,7 @@ ggplot(baci_data) +
   facet_grid(.~time)
 
 
+# get site data out (excl multiplier and rf) and write out
 baci_data |>
   select(
     site,
